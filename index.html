@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Babylon.js GLB Model Example</title>
+    <style>
+        html, body {
+            overflow: hidden;
+            padding: 0;
+            margin: 0;
+            width: 100%;
+            height: 100%;
+        }
+        #renderCanvas {
+            width: 100%;
+            height: 100%;
+            touch-action: none;
+        }
+    </style>
+</head>
+<body>
+<canvas id="renderCanvas"></canvas>
+
+<script src="https://cdn.babylonjs.com/babylon.js"></script>
+<script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+<script>
+    const canvas = document.getElementById("renderCanvas");
+    const engine = new BABYLON.Engine(canvas, true);
+
+   const createScene = function () {
+    const scene = new BABYLON.Scene(engine);
+
+// 加载 keating.glb
+BABYLON.SceneLoader.ImportMeshAsync("", "", "keting.glb", scene).then(() => {
+    scene.meshes.forEach(mesh => {
+        if (mesh.name !== "ground") {
+            mesh.checkCollisions = true;
+        }
+    });
+});
+
+
+BABYLON.SceneLoader.ImportMeshAsync("", "", "zwj.glb", scene).then((result) => {
+    const zwj = result.meshes[0]; // 获取模型根网格
+    
+    // 设置位置：靠左墙，稍微偏移中心
+    zwj.position = new BABYLON.Vector3(0, 0, 4.5); // 根据你的房间结构可调整 X 和 Z
+
+   
+    // 缩放模型（如果模型过大或过小）
+    zwj.scaling = new BABYLON.Vector3(0.8, 0.8, 0.8); // 可按需调整
+
+    // 启用碰撞检测（可选）
+    zwj.getChildMeshes().forEach(m => m.checkCollisions = true);
+});
+    // 添加光源
+    const light = new BABYLON.DirectionalLight("dir01", new BABYLON.Vector3(0, -1, 0), scene);
+    light.intensity = 0.8;
+
+    const ambientLight = new BABYLON.HemisphericLight("hemi", new BABYLON.Vector3(0, 1, 0), scene);
+    ambientLight.intensity = 0.5;
+
+    // 创建第一人称相机
+    const camera = new BABYLON.UniversalCamera("UniversalCamera", new BABYLON.Vector3(0, 1.7, 2), scene);
+    camera.attachControl(canvas, true);
+
+    // 设置椭球体
+    camera.ellipsoid = new BABYLON.Vector3(0.05, 0.9, 0.05);
+
+    // 启用碰撞检测
+    camera.checkCollisions = true;
+    camera.applyGravity = true;
+    scene.gravity = new BABYLON.Vector3(0, -0.9, 0);
+    scene.collisionsEnabled = true;
+
+    // 地面
+    const ground = BABYLON.MeshBuilder.CreateGround("ground", {width: 100, height: 100}, scene);
+    ground.checkCollisions = true;
+    const groundMaterial = new BABYLON.StandardMaterial("groundMaterial", scene);
+    groundMaterial.diffuseColor = new BABYLON.Color3(1, 1, 1); // 白色便于调试
+    ground.material = groundMaterial;
+
+    // 加载模型
+    BABYLON.SceneLoader.ImportMeshAsync("", "", "keting.glb", scene).then(() => {
+        scene.meshes.forEach(mesh => {
+            if (mesh.name !== "ground") {
+                mesh.checkCollisions = true;
+            }
+        });
+    });
+
+    return scene;
+    };
+
+    const scene = createScene();
+
+    engine.runRenderLoop(() => {
+        scene.render();
+    });
+
+    window.addEventListener("resize", () => {
+        engine.resize();
+    });
+</script>
+</body>
+</html>
+       
